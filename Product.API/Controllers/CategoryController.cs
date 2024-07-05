@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Product.Core.Dto;
 using Product.Core.Entities;
 using Product.Core.Interface;
 
@@ -10,9 +12,13 @@ namespace Product.API.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly IUnitOfWork _uow;
-        public CategoryController(IUnitOfWork Uow)
+        private readonly IMapper _mapper;
+
+        public CategoryController(IUnitOfWork Uow, IMapper mapper)
         {
             _uow = Uow;
+            _mapper = mapper;
+
         }
         [HttpGet("get-all-category")]
         public async Task<ActionResult> Get()
@@ -20,7 +26,8 @@ namespace Product.API.Controllers
             var all_category = await _uow.CategoryRepository.GetAllAsync();
             if (all_category != null)
             {
-                return Ok(all_category);
+                var res = _mapper.Map<IReadOnlyList<Category>, IReadOnlyList<ListCategoryDto>>(all_category);
+                return Ok(res);
             }
             return BadRequest("Not Found");
         }
@@ -30,17 +37,18 @@ namespace Product.API.Controllers
             var category = await _uow.CategoryRepository.GetAsync(id);
             if (category == null)
                 return BadRequest($"Not found this id = [{id}]");
-            return Ok(category);
+            return Ok(_mapper.Map<Category, ListCategoryDto>(category));
         }
         [HttpPost("add-new-category")]
-        public async Task<ActionResult> post(Category category)
+        public async Task<ActionResult> post(CategoryDto categoryDto)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await _uow.CategoryRepository.AddAsync(category);
-                    return Ok(category);
+                    var res = _mapper.Map<Category>(categoryDto);
+                    await _uow.CategoryRepository.AddAsync(res);
+                    return Ok(categoryDto);
                 }
                 return BadRequest();
             }
@@ -50,13 +58,17 @@ namespace Product.API.Controllers
             }
         }
         [HttpPut("update-exiting-category-by-id/{id}")]
-        public async Task<ActionResult> put(int id, Category category)
+        public async Task<ActionResult> put(int id, CategoryDto categoryDto)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
                     var exiting_category = await _uow.CategoryRepository.GetAsync(id);
+                    if (exiting_category != null)
+                    {
+                        _mapper.Map(categoryDto, exiting_category);
+                    }
                     await _uow.CategoryRepository.UpdateAsync(id, exiting_category);
                     return Ok(exiting_category);
                 }
