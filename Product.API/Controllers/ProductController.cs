@@ -56,5 +56,43 @@ namespace Product.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("update-exiting-product/{id}")]
+        public async Task<ActionResult> Put(int id, [FromForm] UpdateProductDto productDto)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var res = await _uow.ProductRepository.UpdateAsync(id, productDto);
+                    return res ? Ok(productDto) : BadRequest(res);
+                }
+                return BadRequest(productDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+        [HttpDelete("delete-exiting-product/{id}")]
+        public async Task<ActionResult> delete(int id)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var res = await _uow.ProductRepository.DeleteAsync(id);
+                    return res ? Ok(res) : BadRequest(res);
+                }
+                return NotFound($"this id={id} not found");
+
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
