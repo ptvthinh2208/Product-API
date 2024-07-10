@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Product.Core.Entities;
 using Product.Core.Interface;
 using Product.Infrastructure.Data;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Product.Infrastructure.Repository
 {
-    public class GenericRepository<T> : IGenericRepository <T> where T : class
+    public class GenericRepository<T> : IGenericRepository <T> where T : BasicEntity<int>
     {
         private ApplicationDbContext _context;
         public GenericRepository(ApplicationDbContext context) 
@@ -57,7 +58,8 @@ namespace Product.Infrastructure.Repository
 
         public async Task<T> GetByidAsync(int id, params System.Linq.Expressions.Expression<Func<T, object>>[] includes)
         {
-            IQueryable<T> query = _context.Set<T>();
+            //IQueryable<T> query = _context.Set<T>();
+            IQueryable<T> query = _context.Set<T>().Where(x=>x.Id==id);
             foreach (var item in includes)
             {
                 query = query.Include(item);
