@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Product.API.MyHelper;
 using Product.Core.Dto;
 using Product.Core.Entities;
 using Product.Core.Interface;
+using Product.Core.Sharing;
 
 namespace Product.API.Controllers
 {
@@ -20,13 +22,13 @@ namespace Product.API.Controllers
         }
 
         [HttpGet("get-all-products")]
-        public async Task<ActionResult> Get()
+        public async Task<ActionResult> Get([FromQuery] ProductParams productParams)
         {
+            var src = await _uow.ProductRepository.GetAllAsync(productParams);
+            var totalitems = await _uow.ProductRepository.CountAsync();
+            var result = _mapper.Map<List<ProductDto>>(src);
+            return Ok(new Pagination<ProductDto>(productParams.Pagesize, productParams.PageNumber, totalitems, result));
 
-            var res = await _uow.ProductRepository.GetAllAsync(x => x.Category);
-            var result = _mapper.Map<List<ProductDto>>(res);
-            return Ok(result);
-            
         }
         [HttpGet("get-product-by-id/{id}")]
         public async Task<ActionResult> get(int id)
